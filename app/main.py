@@ -1,11 +1,10 @@
-pip install openai==0.28.1
 import os
 import json
 from PIL import Image
 import numpy as np
 import tensorflow as tf
 import streamlit as st
-import openai
+import openai==0.28.1
 
 # Streamlit App Title
 st.title("🌿 Plant Disease Classifier & Chatbot Assistant")

@@ -22,7 +22,7 @@ else:
 
 # ✅ Set working directory and model paths
 working_dir = os.path.dirname(os.path.abspath(__file__))
-model_dir = os.path.join(working_dir, "trained_model")
+model_dir = os.path.join(working_dir, "app", "trained_model")  # Updated model path
 model_h5_path = os.path.join(model_dir, "plant_disease_prediction_model.h5")
 model_keras_path = os.path.join(model_dir, "plant_disease_prediction_model.keras")
 
@@ -44,7 +44,7 @@ if not os.path.exists(model_h5_path):
         st.error(f"❌ Error downloading model: {e}")
         model_h5_path = None  # Prevent crashing if model download fails
 
-# ✅ Check if the .h5 model is valid
+# ✅ Check if the .h5 model is valid before conversion
 if model_h5_path and os.path.exists(model_h5_path):
     try:
         with h5py.File(model_h5_path, "r") as f:
@@ -54,7 +54,7 @@ if model_h5_path and os.path.exists(model_h5_path):
         model_h5_path = None  # Prevent further crashes
 
 # ✅ Convert .h5 model to .keras format if needed
-if model_h5_path and os.path.exists(model_h5_path):
+if model_h5_path and os.path.exists(model_h5_path) and not os.path.exists(model_keras_path):
     try:
         st.warning("🔄 Converting model from .h5 to .keras format for better compatibility...")
         model = tf.keras.models.load_model(model_h5_path)
@@ -65,18 +65,18 @@ if model_h5_path and os.path.exists(model_h5_path):
         model_keras_path = None  # Prevent crashes
 
 # ✅ Load the model from .keras format
+model = None
 if model_keras_path and os.path.exists(model_keras_path):
     try:
         model = tf.keras.models.load_model(model_keras_path)
         st.success("✅ Model loaded successfully!")
     except Exception as e:
         st.error(f"❌ Error loading model: {e}")
-        model = None  # Prevent further crashes
 else:
     st.error("❌ Model file is missing. Please check the Google Drive link or upload the model manually.")
 
 # ✅ Load class names
-class_indices_path = os.path.join(working_dir, "class_indices.json")
+class_indices_path = os.path.join(working_dir, "app", "class_indices.json")
 if os.path.exists(class_indices_path):
     with open(class_indices_path, "r") as f:
         class_indices = json.load(f)

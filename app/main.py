@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 import streamlit as st
 import openai
+import h5py
 
 # Streamlit App Title
 st.title("🌿 Plant Disease Classifier & Chatbot Assistant")
@@ -22,9 +23,10 @@ else:
 # ✅ Set working directory and model paths
 working_dir = os.path.dirname(os.path.abspath(__file__))
 model_dir = os.path.join(working_dir, "trained_model")
-model_path = os.path.join(model_dir, "plant_disease_prediction_model.h5")
+model_h5_path = os.path.join(model_dir, "plant_disease_prediction_model.h5")
+model_keras_path = os.path.join(model_dir, "plant_disease_prediction_model.keras")
 
-# ✅ Updated Google Drive Model Download URL
+# ✅ Google Drive Model Download URL
 gdrive_file_id = "1WLJk_JlWYL-1M8enmRgiCx3ddYNJwDUv"
 gdrive_url = f"https://drive.google.com/uc?id={gdrive_file_id}"
 
@@ -32,20 +34,40 @@ gdrive_url = f"https://drive.google.com/uc?id={gdrive_file_id}"
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
-# ✅ Check if model exists, else download from Google Drive
-if not os.path.exists(model_path):
+# ✅ Check if the .h5 model exists, else download from Google Drive
+if not os.path.exists(model_h5_path):
     st.warning("⚠️ Model file not found locally. Downloading from Google Drive...")
     try:
-        gdown.download(gdrive_url, model_path, quiet=False)
+        gdown.download(gdrive_url, model_h5_path, quiet=False)
         st.success("✅ Model downloaded successfully!")
     except Exception as e:
         st.error(f"❌ Error downloading model: {e}")
-        model_path = None  # Prevent crashing if model download fails
+        model_h5_path = None  # Prevent crashing if model download fails
 
-# ✅ Check if the model file is valid before loading
-if model_path and os.path.exists(model_path):
+# ✅ Check if the .h5 model is valid
+if model_h5_path and os.path.exists(model_h5_path):
     try:
-        model = tf.keras.models.load_model(model_path)
+        with h5py.File(model_h5_path, "r") as f:
+            st.success("✅ Model file is valid and readable!")
+    except Exception as e:
+        st.error(f"❌ Corrupt model file: {e}")
+        model_h5_path = None  # Prevent further crashes
+
+# ✅ Convert .h5 model to .keras format if needed
+if model_h5_path and os.path.exists(model_h5_path):
+    try:
+        st.warning("🔄 Converting model from .h5 to .keras format for better compatibility...")
+        model = tf.keras.models.load_model(model_h5_path)
+        model.save(model_keras_path, save_format="keras")
+        st.success("✅ Model successfully converted to .keras format!")
+    except Exception as e:
+        st.error(f"❌ Error converting model: {e}")
+        model_keras_path = None  # Prevent crashes
+
+# ✅ Load the model from .keras format
+if model_keras_path and os.path.exists(model_keras_path):
+    try:
+        model = tf.keras.models.load_model(model_keras_path)
         st.success("✅ Model loaded successfully!")
     except Exception as e:
         st.error(f"❌ Error loading model: {e}")
@@ -167,15 +189,3 @@ with tab1:
                 st.success(f"🌱 **Prediction:** {predicted_disease}")
                 st.info(f"🔢 **Confidence:** {confidence:.2f}%")
                 st.markdown(f"📖 **Disease Information:**\n\n{disease_details}")
-
-# 💬 **Tab 2: AI Chatbot for Plant Queries**
-with tab2:
-    st.subheader("💬 Ask the Plant AI Expert")
-    user_input = st.text_input("Type your question here (e.g., How to treat black rot on apples?)", "")
-
-    if st.button("💡 Get Answer"):
-        if user_input:
-            response = chatbot_response(user_input)
-            st.write(f"🤖 **AI Response:**\n\n{response}")
-        else:
-            st.warning("Please enter a question before submitting.")

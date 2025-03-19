@@ -1,4 +1,3 @@
-pip install openai==0.28.1
 import os
 import json
 from PIL import Image

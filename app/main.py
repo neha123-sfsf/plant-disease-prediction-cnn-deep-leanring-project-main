@@ -75,14 +75,28 @@ if model_keras_path and os.path.exists(model_keras_path):
 else:
     st.error("❌ Model file is missing. Please check the Google Drive link or upload the model manually.")
 
-# ✅ Load class names
+# ✅ Load class names with error handling
 class_indices_path = os.path.join(working_dir, "app", "class_indices.json")
+
 if os.path.exists(class_indices_path):
-    with open(class_indices_path, "r") as f:
-        class_indices = json.load(f)
-    class_indices = {int(k): v for k, v in class_indices.items()}
+    try:
+        with open(class_indices_path, "r") as f:
+            class_indices = json.load(f)
+
+        # Ensure JSON data is properly formatted
+        if isinstance(class_indices, dict):
+            class_indices = {int(k): v for k, v in class_indices.items()}
+            st.success("✅ Class indices loaded successfully!")
+        else:
+            st.warning("⚠️ Class indices JSON format is incorrect. Defaulting to empty labels.")
+            class_indices = {}
+
+    except json.JSONDecodeError:
+        st.error("❌ Error: class_indices.json contains invalid JSON. Please check the file content.")
+        class_indices = {}
+
 else:
-    st.error("❌ Class indices file missing. Please check your project folder.")
+    st.warning("⚠️ Class indices file is missing. Defaulting to empty labels.")
     class_indices = {}
 
 # ✅ Function to Load and Preprocess Image
@@ -121,24 +135,6 @@ def get_disease_description(disease_name):
             model="gpt-4",
             messages=[{"role": "system", "content": "You are an expert in plant diseases."},
                       {"role": "user", "content": prompt}],
-            max_tokens=500,
-            temperature=0.7
-        )
-        return response["choices"][0]["message"]["content"]
-    except Exception as e:
-        return f"❌ Error: {e}"
-
-# ✅ Function for GPT-4 Chatbot
-def chatbot_response(user_query):
-    if not api_key:
-        return "⚠️ API key is missing. Please enter a valid API key above."
-
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "system",
-                       "content": "You are a plant expert. Answer user queries about plant diseases and plant care."},
-                      {"role": "user", "content": user_query}],
             max_tokens=500,
             temperature=0.7
         )

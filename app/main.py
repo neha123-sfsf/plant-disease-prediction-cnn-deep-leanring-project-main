@@ -19,15 +19,16 @@ if api_key:
 else:
     st.warning("⚠️ Please enter a valid OpenAI API Key to use AI features.")
 
-# Set working directory
+# ✅ Set working directory and model paths
 working_dir = os.path.dirname(os.path.abspath(__file__))
 model_dir = os.path.join(working_dir, "trained_model")
 model_path = os.path.join(model_dir, "plant_disease_prediction_model.h5")
 
-# Google Drive Model Download URL (Replace 'YOUR_FILE_ID' with actual ID)
-gdrive_url = "https://drive.google.com/file/d/1rKh-IElSdHTqax7XdfSdZTn-r8T_qWPf"
+# ✅ Google Drive Model Download URL
+gdrive_file_id = "1rKh-IElSdHTqax7XdfSdZTn-r8T_qWPf"
+gdrive_url = f"https://drive.google.com/uc?id={gdrive_file_id}"
 
-# Ensure the trained_model directory exists
+# ✅ Ensure the trained_model directory exists
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
@@ -41,14 +42,18 @@ if not os.path.exists(model_path):
         st.error(f"❌ Error downloading model: {e}")
         model_path = None  # Prevent crashing if model download fails
 
-# ✅ Load the model if the file exists
+# ✅ Check if the model file is valid before loading
 if model_path and os.path.exists(model_path):
-    model = tf.keras.models.load_model(model_path)
-    st.success("✅ Model loaded successfully!")
+    try:
+        model = tf.keras.models.load_model(model_path)
+        st.success("✅ Model loaded successfully!")
+    except Exception as e:
+        st.error(f"❌ Error loading model: {e}")
+        model = None  # Prevent further crashes
 else:
     st.error("❌ Model file is missing. Please check the Google Drive link or upload the model manually.")
 
-# Load class names
+# ✅ Load class names
 class_indices_path = os.path.join(working_dir, "class_indices.json")
 if os.path.exists(class_indices_path):
     with open(class_indices_path, "r") as f:
@@ -58,7 +63,7 @@ else:
     st.error("❌ Class indices file missing. Please check your project folder.")
     class_indices = {}
 
-# Function to Load and Preprocess Image
+# ✅ Function to Load and Preprocess Image
 def load_and_preprocess_image(image, target_size=(224, 224)):
     img = image.resize(target_size)
     img_array = np.array(img)
@@ -66,8 +71,11 @@ def load_and_preprocess_image(image, target_size=(224, 224)):
     img_array = img_array.astype('float32') / 255.0
     return img_array
 
-# Function to Predict the Class of an Image
+# ✅ Function to Predict the Class of an Image
 def predict_image_class(model, image, class_indices):
+    if model is None:
+        return "No Model", 0.0
+
     preprocessed_img = load_and_preprocess_image(image)
     predictions = model.predict(preprocessed_img)
     predicted_class_index = np.argmax(predictions, axis=1)[0]
@@ -75,7 +83,7 @@ def predict_image_class(model, image, class_indices):
     confidence_score = np.max(predictions) * 100
     return predicted_class_name, confidence_score
 
-# Function to Get Disease Description from GPT-4
+# ✅ Function to Get Disease Description from GPT-4
 def get_disease_description(disease_name):
     if not api_key:
         return "⚠️ API key is missing. Please enter a valid API key above."
@@ -98,7 +106,7 @@ def get_disease_description(disease_name):
     except Exception as e:
         return f"❌ Error: {e}"
 
-# Function for GPT-4 Chatbot
+# ✅ Function for GPT-4 Chatbot
 def chatbot_response(user_query):
     if not api_key:
         return "⚠️ API key is missing. Please enter a valid API key above."
@@ -116,7 +124,7 @@ def chatbot_response(user_query):
     except Exception as e:
         return f"❌ Error: {e}"
 
-# Create Tabs
+# ✅ Create Tabs
 tab1, tab2 = st.tabs(["🖼 Disease Detection", "💬 Chat with AI"])
 
 # 🖼 **Tab 1: Plant Disease Detection**

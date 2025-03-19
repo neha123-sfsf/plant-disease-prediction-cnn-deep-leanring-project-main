@@ -153,11 +153,7 @@ else:
                     st.info(f"🔢 **Confidence:** {confidence:.2f}%")
                     st.markdown(f"📖 **Disease Information:**\n\n{disease_details}")
 
-        # **Submit Button After Upload**  
-        if uploaded_images or camera_image:
-            submit_button = st.button("Submit Image for Prediction")
-            if submit_button:
-                st.info("✅ Image has been submitted for prediction!")
+      
 
     # 💬 **Tab 2: AI Chatbot for Plant Queries**
     with tab2:

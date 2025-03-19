@@ -9,7 +9,7 @@ import openai
 import h5py
 
 # Streamlit App Title
-st.title("🌿 Plant Disease Classifier & Chatbot Assistant")
+st.title("🌿 Plant Disease Detection & Chatbot Assistant")
 
 # First Page: Ask for API key and submit button
 if "api_key_set" not in st.session_state:
@@ -28,7 +28,7 @@ if not st.session_state.api_key_set:
             st.experimental_rerun()  # This triggers the app to rerun and show the next page.
 else:
     # Once API key is set, show the next page for disease detection and chatbot
-    st.title("🌿 Disease Detection & AI Chatbot")
+ 
 
     # ✅ Set working directory and model paths
     working_dir = os.path.dirname(os.path.abspath(__file__))

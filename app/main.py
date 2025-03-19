@@ -1,5 +1,6 @@
 import os
 import json
+import gdown
 from PIL import Image
 import numpy as np
 import tensorflow as tf
@@ -20,15 +21,42 @@ else:
 
 # Set working directory
 working_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = f"{working_dir}/trained_model/plant_disease_prediction_model.h5"
+model_dir = os.path.join(working_dir, "trained_model")
+model_path = os.path.join(model_dir, "plant_disease_prediction_model.h5")
 
-# Load the pre-trained model
-model = tf.keras.models.load_model(model_path)
+# Google Drive Model Download URL (Replace 'YOUR_FILE_ID' with actual ID)
+gdrive_url = "https://drive.google.com/uc?id=YOUR_FILE_ID"
+
+# Ensure the trained_model directory exists
+if not os.path.exists(model_dir):
+    os.makedirs(model_dir)
+
+# ✅ Check if model exists, else download from Google Drive
+if not os.path.exists(model_path):
+    st.warning("⚠️ Model file not found locally. Downloading from Google Drive...")
+    try:
+        gdown.download(gdrive_url, model_path, quiet=False)
+        st.success("✅ Model downloaded successfully!")
+    except Exception as e:
+        st.error(f"❌ Error downloading model: {e}")
+        model_path = None  # Prevent crashing if model download fails
+
+# ✅ Load the model if the file exists
+if model_path and os.path.exists(model_path):
+    model = tf.keras.models.load_model(model_path)
+    st.success("✅ Model loaded successfully!")
+else:
+    st.error("❌ Model file is missing. Please check the Google Drive link or upload the model manually.")
 
 # Load class names
-with open(f"{working_dir}/class_indices.json", "r") as f:
-    class_indices = json.load(f)
-class_indices = {int(k): v for k, v in class_indices.items()}
+class_indices_path = os.path.join(working_dir, "class_indices.json")
+if os.path.exists(class_indices_path):
+    with open(class_indices_path, "r") as f:
+        class_indices = json.load(f)
+    class_indices = {int(k): v for k, v in class_indices.items()}
+else:
+    st.error("❌ Class indices file missing. Please check your project folder.")
+    class_indices = {}
 
 # Function to Load and Preprocess Image
 def load_and_preprocess_image(image, target_size=(224, 224)):
@@ -43,7 +71,7 @@ def predict_image_class(model, image, class_indices):
     preprocessed_img = load_and_preprocess_image(image)
     predictions = model.predict(preprocessed_img)
     predicted_class_index = np.argmax(predictions, axis=1)[0]
-    predicted_class_name = class_indices[predicted_class_index]
+    predicted_class_name = class_indices.get(predicted_class_index, "Unknown Disease")
     confidence_score = np.max(predictions) * 100
     return predicted_class_name, confidence_score
 
@@ -114,7 +142,7 @@ with tab1:
             images_to_process.append(Image.open(img_file))
 
     # **Process Multiple Images**
-    if images_to_process:
+    if images_to_process and model:
         st.subheader("🖼 Processed Images & Results")
 
         for idx, image in enumerate(images_to_process):

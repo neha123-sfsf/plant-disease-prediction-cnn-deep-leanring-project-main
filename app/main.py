@@ -75,29 +75,10 @@ if model_keras_path and os.path.exists(model_keras_path):
 else:
     st.error("❌ Model file is missing. Please check the Google Drive link or upload the model manually.")
 
-# ✅ Load class names with error handling
-class_indices_path = os.path.join(working_dir, "app", "class_indices.json")
-
-if os.path.exists(class_indices_path):
-    try:
-        with open(class_indices_path, "r") as f:
-            class_indices = json.load(f)
-
-        # Ensure JSON data is properly formatted
-        if isinstance(class_indices, dict):
-            class_indices = {int(k): v for k, v in class_indices.items()}
-            st.success("✅ Class indices loaded successfully!")
-        else:
-            st.warning("⚠️ Class indices JSON format is incorrect. Defaulting to empty labels.")
-            class_indices = {}
-
-    except json.JSONDecodeError:
-        st.error("❌ Error: class_indices.json contains invalid JSON. Please check the file content.")
-        class_indices = {}
-
-else:
-    st.warning("⚠️ Class indices file is missing. Defaulting to empty labels.")
-    class_indices = {}
+# Load class names
+with open(f"{working_dir}/class_indices.json", "r") as f:
+    class_indices = json.load(f)
+class_indices = {int(k): v for k, v in class_indices.items()}
 
 # ✅ Function to Load and Preprocess Image
 def load_and_preprocess_image(image, target_size=(224, 224)):

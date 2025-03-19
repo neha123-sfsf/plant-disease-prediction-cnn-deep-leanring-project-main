@@ -23,6 +23,9 @@ if not st.session_state.api_key_set:
         openai.api_key = api_key
         st.session_state.api_key_set = True
         st.success("✅ API Key has been successfully set up!")
+        # Add the "Next" button to proceed to the second page
+        if st.button("Next"):
+            st.experimental_rerun()  # This triggers the app to rerun and show the next page.
 else:
     # Once API key is set, show the next page for disease detection and chatbot
     st.title("🌿 Disease Detection & AI Chatbot")

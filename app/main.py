@@ -24,8 +24,8 @@ working_dir = os.path.dirname(os.path.abspath(__file__))
 model_dir = os.path.join(working_dir, "trained_model")
 model_path = os.path.join(model_dir, "plant_disease_prediction_model.h5")
 
-# ✅ Google Drive Model Download URL
-gdrive_file_id = "1rKh-IElSdHTqax7XdfSdZTn-r8T_qWPf"
+# ✅ Updated Google Drive Model Download URL
+gdrive_file_id = "1WLJk_JlWYL-1M8enmRgiCx3ddYNJwDUv"
 gdrive_url = f"https://drive.google.com/uc?id={gdrive_file_id}"
 
 # ✅ Ensure the trained_model directory exists
